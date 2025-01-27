@@ -31,7 +31,9 @@ Libraries used:
 Frontend auth architecture: 
 
 Auth uses 2 tokens: access token and refresh token
+
 *refresh token* is stored as httpOnly cookie, a random guid stored in backend database.
+
 *access token* is jwt token stored only in transient storage (component closure), short lived, not accessible outside AuthProvider component (inner state)
 
 On axios there is interceptor, once 401 response is received on any request auth context automatically tries to generate new access token ("/api/auth/refresh")
