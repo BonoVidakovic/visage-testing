@@ -62,6 +62,7 @@ For postgres integration postgres-js lib is used, it uses params in background s
 Deploying to prod:
 
 3 containers: nginx, postgres, backend
+
 2 volumes: postgres data, nginx static files
 
 nginx should be configured to:
