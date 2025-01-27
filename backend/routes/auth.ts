@@ -12,7 +12,7 @@ const router = express.Router();
 /**
  * Sets new refresh token cookie and returns new access token
  */
-router.get('/refresh', async function (req, res, next) {
+router.post('/refresh', async function (req, res, next) {
     const getToken = sql`
         select user_id
         from refresh_tokens
@@ -148,7 +148,7 @@ router.post('/signup', async (req, res, next) => {
     res.status(201).json({message: 'User created'});
 })
 
-router.get('/logout', authProvider, async (req, res, next) => {
+router.post('/logout', authProvider, async (req, res, next) => {
    // @ts-ignore
     const {userId} = req.auth;
 

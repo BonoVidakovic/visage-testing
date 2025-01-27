@@ -39,7 +39,7 @@ const AuthProvider = ({children}: React.PropsWithChildren) => {
             err => {
                 if (err.response.status === 401 && !token) {
                     setAuth({isLoggedIn: false})
-                    axios.get("/api/auth/refresh")
+                    axios.post("/api/auth/refresh")
                         .then(res => setAuth({
                             isLoggedIn: true,
                             token: res.data.token
@@ -79,7 +79,7 @@ const AuthProvider = ({children}: React.PropsWithChildren) => {
     }, [isLoggedIn, token, navigate, username]);
 
     const logout = async () => {
-        const [err] = await to(axios.get("/api/auth/logout")); // Remove refresh token cookie
+        const [err] = await to(axios.post("/api/auth/logout")); // Remove refresh token cookie
         if (!err) {
             setAuth({isLoggedIn: false});
         }
