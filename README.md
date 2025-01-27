@@ -4,6 +4,7 @@ Simple Express + React SPA for managing movies list
 # Instructions to run:
 
 database: Open terminal > docker run --name postgres-container -e POSTGRES_PASSWORD=your_password -e POSTGRES_DB=my_database -e POSTGRES_USER=my_user -p 5433:5432 -d postgres
+                        
                         > cd visage-testing && psql -h http://localhost:5433 -U my_user -d my:database -a -f ./backend/resources/db_schema.sql
                         
 frontend: Open terminal > cd frontend > "npm dev"
