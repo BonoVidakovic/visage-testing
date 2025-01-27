@@ -38,7 +38,7 @@ Auth uses 2 tokens: access token and refresh token
 
 On axios there is interceptor, once 401 response is received on any request auth context automatically tries to generate new access token ("/api/auth/refresh")
 
-Components outside AuthContextProvider have access to auth-related stuff throught use of useAuthContext hook that exposes:
+Components outside AuthContextProvider have access to auth-related stuff through the use of useAuthContext hook that exposes:
  - logout: () -> void -- calls POST '/api/auth/logout' in order to remove refresh token cookie, on success deletes token, useEffect cleanup function removes axios interceptor for adding Authorization header
  - login: async (username, password) -> void -- logs user in, fetches token
  - isLoggedIn: boolean
