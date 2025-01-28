@@ -2,24 +2,21 @@ import {Movie} from "../models/Movie.ts";
 import {Box, Card, CardContent, IconButton, Typography} from "@mui/material";
 import {Favorite, FavoriteBorder} from "@mui/icons-material";
 import {Link} from "react-router-dom";
-import axios from "axios";
 
 export default function MovieCard({
                                       data: {title, releaseYear, isFavorite, poster, id},
+                                      toggleFavorite,
                                       showFavoriteStatus,
                                   }: React.PropsWithChildren<{
     data: Movie,
-    showFavoriteStatus?: boolean
+    showFavoriteStatus?: boolean,
+    toggleFavorite?: () => void,
 }>) {
 
-    const toggleFavorite = () => {
-        axios.post("/api/movies/" + id + "/toggle-favorite")
-    }
-
     return (
-        <Box height={"20vh"} width={"20vw"}>
-            <Card>
-                <CardContent>
+        <Card>
+            <CardContent>
+                <Box height={"20vh"} width={"20vw"}>
                     <img height="15vh" src={poster} alt={title}/>
                     <Typography variant="h5">
                         <Link to={"/movie/" + id}>{title}</Link> ({releaseYear})
@@ -29,8 +26,8 @@ export default function MovieCard({
                             <Favorite/> :
                             <FavoriteBorder/>}</IconButton>
                         </Typography>}
-                </CardContent>
-            </Card>
-        </Box>
+                </Box>
+            </CardContent>
+        </Card>
     );
 }

@@ -34,6 +34,16 @@ export default function MoviesView({filterFavorites}: React.PropsWithChildren<{
     }, [limit, page, filterFavorites]);
 
 
+    const toggleFavorite = (id: string) => () => {
+        axios.put("/api/movies/" + id + "/favorite", {isFavorite: !moviesResponse.movies.find(movie => movie.id === id)?.isFavorite})
+            .then(() => {
+                setMoviesResponse({
+                    ...moviesResponse,
+                    movies: moviesResponse.movies.map(movie => movie.id === id ? {...movie, isFavorite: !movie.isFavorite} : movie)
+                })
+            })
+    }
+
     return (
         <Box paddingTop="1vh"
              sx={{
@@ -53,6 +63,7 @@ export default function MoviesView({filterFavorites}: React.PropsWithChildren<{
                     flexDirection: 'column-reverse',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    width: 'auto',
                 }}
             >
                 <InfiniteScroll
@@ -70,9 +81,12 @@ export default function MoviesView({filterFavorites}: React.PropsWithChildren<{
                     scrollThreshold={1}
                 >
                     <div style={{height: 20}}></div>
-                    <Grid container spacing={2}>
+                    <Grid container spacing={2} sx={{justifyContent: 'center'}}>
                         {moviesResponse?.movies.map(movie => (
-                            <MovieCard showFavoriteStatus={filterFavorites} data={movie} key={movie.id + "" + movie.isFavorite}/>
+                            <MovieCard showFavoriteStatus={filterFavorites}
+                                       data={movie}
+                                       key={movie.id + "" + movie.isFavorite}
+                                       toggleFavorite={toggleFavorite(movie.id)}/>
                         ))}
                     </Grid>
                     <div style={{height: 20}}></div>

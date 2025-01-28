@@ -97,36 +97,37 @@ router.get('/:id/reviews', paginationProvider, async (req, res, next) => {
     next();
 })
 
-router.post('/:id/toggle-favorite', authProvider, async (req, res, next) => {
+router.put('/:id/favorite', authProvider, async (req, res, next) => {
     // @ts-ignore
     const {userId} = req.auth;
     const {id} = req.params;
+    const {isFavorite} = req.body;
 
-    const isToggledQuerry = sql`
+    const isFavoriteQuerry = sql`
         select exists (select 1
                        from user_movie_favorite
                        where movie_id = ${id}
                          and user_id = ${userId}) as is_favorite
     `;
 
-    const [{is_favorite}] = await isToggledQuerry;
+    const [{is_favorite}] = await isFavoriteQuerry;
 
-    if(is_favorite) {
+    if (is_favorite && !isFavorite) {
         await sql`
-            delete from user_movie_favorite
+            delete
+            from user_movie_favorite
             where movie_id = ${id}
               and user_id = ${userId}
         `
-    } else {
+    } else if (!is_favorite && isFavorite) {
         await sql`
             insert into user_movie_favorite (user_id, movie_id)
             values (${userId}, ${id})
         `
     }
 
-    res.status(200).json({
-        message: 'Favorite status toggled'});
-
+    res.status(200).json({isFavorite});
+    next();
 })
 
 export default router;

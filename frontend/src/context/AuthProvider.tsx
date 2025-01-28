@@ -1,6 +1,6 @@
 import {Auth} from "../models/Auth.ts";
 import * as React from "react";
-import {createContext, useContext, useEffect, useState} from "react";
+import {createContext, useCallback, useContext, useEffect, useState} from "react";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
 import to from "await-to-js";
@@ -23,60 +23,65 @@ export const useAuthContext = () => {
 };
 
 const AuthProvider = ({children}: React.PropsWithChildren) => {
-    const [{isLoggedIn, token, username}, setAuth] = useState<{
+    const [{isLoggedIn, username}, setAuth] = useState<{
         isLoggedIn: boolean,
         username?: string,
-        token?: string
     }>({
         isLoggedIn: false
     })
 
     const navigate = useNavigate();
 
+
+    const setupAuthGenerator = () => {
+        let authInterceptorCleanup: () => void;
+
+        return (token: string) => {
+            if (authInterceptorCleanup) authInterceptorCleanup();
+
+            const interceptor = axios.interceptors.request.use(config => {
+                config.headers.Authorization = `Bearer ${token}`;
+                return config;
+            });
+
+            axios.get("/api/auth/me")
+                .then(res => setAuth({
+                    isLoggedIn: true,
+                    username: res.data.username
+                }));
+
+            authInterceptorCleanup = () => axios.interceptors.request.eject(interceptor)
+        }
+    }
+
+    const setupAuth = useCallback(setupAuthGenerator(), [setAuth]);
+
     // On each 401 try to refresh token, if it fails navigate to login page
     useEffect(() => {
         const interceptor = axios.interceptors.response.use(res => res,
             err => {
-                if (err.response.status === 401 && !token) {
+                if (err.response.status === 401) {
                     setAuth({isLoggedIn: false})
                     axios.post("/api/auth/refresh")
-                        .then(res => setAuth({
-                            isLoggedIn: true,
-                            token: res.data.token
-                        }))
-                        .catch(() => !err.config.url.includes("auth") && navigate("/login"));
+                        .then(res => {
+                            setupAuth(res.data.token);
+                        })
+                        .catch(() => navigate("/login"));
                 } else {
                     throw err;
                 }
             })
-        axios.get("/api/auth/me").then();
-        return () => axios.interceptors.response.eject(interceptor);
+        return () => {
+            axios.interceptors.response.eject(interceptor);
+        }
     }, [navigate])
 
-    // Setup interceptors and user info
     useEffect(() => {
-        const setupAuthHeader = () => {
-            return axios.interceptors.request.use(config => {
-                config.headers.Authorization = `Bearer ${token}`;
-                return config;
-            });
-        }
-
-        if (isLoggedIn) {
-            if (token == null) throw new Error(
-                "Token is null, but auth is logged in"
-            );
-
-            const interceptor = setupAuthHeader();
-
-            if (username == null) {
-                axios.get("/api/auth/me")
-                    .then(res => setAuth(prevState => ({...prevState, username: res.data.username})));
-            }
-
-            return () => axios.interceptors.request.eject(interceptor)
-        }
-    }, [isLoggedIn, token, navigate, username]);
+        axios.post("/api/auth/refresh")
+            .then(res => {
+                setupAuth(res.data.token);
+            })
+    }, [setupAuth]);
 
     const logout = async () => {
         const [err] = await to(axios.post("/api/auth/logout")); // Remove refresh token cookie
@@ -95,10 +100,7 @@ const AuthProvider = ({children}: React.PropsWithChildren) => {
             return {isError: true}
         }
 
-        setAuth({
-            isLoggedIn: true,
-            token: res?.data.token
-        });
+        setupAuth(res.data.token);
 
         return {isError: false};
     }
